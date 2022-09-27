@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23fff4b75dfb4b34c80e9d89996e6d67, type: 3}
-  m_Name: Question_new
+  m_Name: Question_1
   m_EditorClassIdentifier: 
-  questionType: 0
+  questionType: 2
   difficulty: 0
-  question: 
+  scoreMultiplier: 1
+  question: _____.Log("Message")

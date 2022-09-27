@@ -8,22 +8,31 @@ using UnityEditor;
 
 namespace UnityLearnCasual
 {
-	[CreateAssetMenu(fileName = "Question_new", menuName = "Create Question")]
-	public class Question : ScriptableObject
-	{
-		public enum QuestionType{MultiSelect,Select1to4,Input}
-		public enum Difficulty { Easy,Hard}
-		[SerializeField] QuestionType questionType;
-		[SerializeField] Difficulty difficulty;
-		[SerializeField] string question;
+    [CreateAssetMenu(fileName = "Question_new", menuName = "Create Question")]
+    public class Question : ScriptableObject
+    {
+        public enum QuestionType { MultiSelect, Select1to4, Input }
+        public enum Difficulty { Easy, Hard }
+        [SerializeField] public QuestionType questionType;
+        [SerializeField] public Difficulty difficulty;
+        [SerializeField] public float scoreMultiplier = 1f;
+        [SerializeField] public string question;
 
-        List<string> listOfGivenAnswers = new List<string>();
+        [HideInInspector] public List<string> listOfGivenAnswers { get; private set; } = new List<string>();
+        [HideInInspector] public List<bool> listOfCorrectAnswersIndex { get; private set; } = new List<bool>();
+        [HideInInspector] public int correctAnswerIndex { get; private set; }
+        [HideInInspector] public string correctAnswerString { get; private set; }
+
+        [HideInInspector] public bool showListOfGivenAnswers { get; private set; } = true;
+        [HideInInspector] public bool showListOfCorrectAnswer { get; private set; } = true;
+
+        /*List<string> listOfGivenAnswers = new List<string>();
         List<bool> listOfCorrectAnswersIndex = new List<bool>();
         int correctAnswerIndex;
         string correctAnswerString;
 
         bool showListOfGivenAnswers = true;
-        bool showListOfCorrectAnswer = true;
+        bool showListOfCorrectAnswer = true;*/
 
         #region Editor
 #if UNITY_EDITOR
@@ -103,8 +112,7 @@ namespace UnityLearnCasual
                         
                         break;
                     case (QuestionType.Input):
-                        EditorGUILayout.LabelField("Answer string");
-                        EditorGUILayout.TextArea(question.correctAnswerString);
+                        question.correctAnswerString = EditorGUILayout.TextField("Answer: ", question.correctAnswerString);
                         break;
                     default:
                         EditorGUILayout.LabelField("Select Type");
