@@ -2,13 +2,14 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
-#if UNITY_EDITOR
+// #if UNITY_EDITOR*
 using UnityEditor;
-#endif
+// #endif
 
 namespace UnityLearnCasual
 {
     [CreateAssetMenu(fileName = "Question_new", menuName = "Create Question")]
+    [System.Serializable]
     public class Question : ScriptableObject
     {
         public enum QuestionType { MultiSelect, Select1to4, Input }
@@ -18,21 +19,13 @@ namespace UnityLearnCasual
         [SerializeField] public float scoreMultiplier = 1f;
         [SerializeField] public string question;
 
-        [HideInInspector] public List<string> listOfGivenAnswers { get; private set; } = new List<string>();
-        [HideInInspector] public List<bool> listOfCorrectAnswersIndex { get; private set; } = new List<bool>();
-        [HideInInspector] public int correctAnswerIndex { get; private set; }
-        [HideInInspector] public string correctAnswerString { get; private set; }
+        [HideInInspector] public List<string> listOfGivenAnswers = new List<string>();
+        [HideInInspector] public List<bool> listOfCorrectAnswersIndex = new List<bool>();
+        [HideInInspector] public int correctAnswerIndex;
+        [HideInInspector] public string correctAnswerString;
+        [HideInInspector] public bool showListOfGivenAnswers = true;
+        [HideInInspector] public bool showListOfCorrectAnswer = true;
 
-        [HideInInspector] public bool showListOfGivenAnswers { get; private set; } = true;
-        [HideInInspector] public bool showListOfCorrectAnswer { get; private set; } = true;
-
-        /*List<string> listOfGivenAnswers = new List<string>();
-        List<bool> listOfCorrectAnswersIndex = new List<bool>();
-        int correctAnswerIndex;
-        string correctAnswerString;
-
-        bool showListOfGivenAnswers = true;
-        bool showListOfCorrectAnswer = true;*/
 
         #region Editor
 #if UNITY_EDITOR
@@ -40,10 +33,18 @@ namespace UnityLearnCasual
         [CustomEditor(typeof(Question))]
 		public class QuestionEditor : Editor
         {
+            [SettingsProvider]
             public override void OnInspectorGUI()
             {
                 base.OnInspectorGUI();
-				Question question = (Question)target;
+
+                Question question = (Question)target;
+                EditorUtility.SetDirty(question);
+
+                var so = new SerializedObject(question);
+                so.Update();
+                
+
                 int size = 0;
                 switch (question.questionType)
                 {
@@ -58,7 +59,7 @@ namespace UnityLearnCasual
 
                             while (size > question.listOfGivenAnswers.Count) { question.listOfGivenAnswers.Add(null); }
                             while (size < question.listOfGivenAnswers.Count) { question.listOfGivenAnswers.RemoveAt(question.listOfGivenAnswers.Count - 1); }
-
+                            
                             for (int i = 0; i < question.listOfGivenAnswers.Count; i++)
                             {
                                 question.listOfGivenAnswers[i] = EditorGUILayout.TextField("Answers " + i, question.listOfGivenAnswers[i]);
@@ -118,6 +119,8 @@ namespace UnityLearnCasual
                         EditorGUILayout.LabelField("Select Type");
                         break;
                 }
+
+                so.ApplyModifiedProperties();
             }
         }
 		#endif

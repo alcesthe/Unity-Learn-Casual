@@ -16,3 +16,9 @@ MonoBehaviour:
   difficulty: 0
   scoreMultiplier: 1
   question: _____.Log("Message")
+  listOfGivenAnswers: []
+  listOfCorrectAnswersIndex: 
+  correctAnswerIndex: 0
+  correctAnswerString: Debug
+  showListOfGivenAnswers: 1
+  showListOfCorrectAnswer: 1

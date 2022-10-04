@@ -16,3 +16,13 @@ MonoBehaviour:
   difficulty: 0
   scoreMultiplier: 1
   question: What method call at begin
+  listOfGivenAnswers:
+  - Awake()
+  - Update()
+  - OnDelete()
+  - Soon()
+  listOfCorrectAnswersIndex: 
+  correctAnswerIndex: 0
+  correctAnswerString: 
+  showListOfGivenAnswers: 1
+  showListOfCorrectAnswer: 1

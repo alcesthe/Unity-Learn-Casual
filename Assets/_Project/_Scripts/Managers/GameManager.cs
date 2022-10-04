@@ -2,31 +2,62 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityLearnCasual;
+using System.Collections;
+using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 /// <summary>
 /// Nice, easy to understand enum-based game manager. For larger and more complex games, look into
 /// state machines. But this will serve just fine for most games.
 /// </summary>
-public class GameManager : StaticInstance<GameManager> {
-    public static event Action<GameState> OnBeforeStateChanged;
-    public static event Action<GameState> OnAfterStateChanged;
-    [SerializeField] List<Question> listOfQuestion = new List<Question>();
+public class GameManager : StaticInstance<GameManager>
+{
+    public static event Action<GameState> onBeforeStateChange;
+    public static event Action<GameState> onAfterStateChange;
+    public GameState state { get; private set; }
+    
+    [Header("UI")]
     [SerializeField] GameObject answeringPanelUI;
+    [SerializeField] GameObject lostPanelUI;
+    [SerializeField] GameObject startPanelUI;
+    [SerializeField] GameObject pausePanelUI;
+    [SerializeField] GameObject inGamePanelUI;
 
-    [HideInInspector] public Question _currentQuestion;
-    [HideInInspector] public Question _prevQuestion;
+    [Header("Question")]
+    // Question
+    [SerializeField] List<Question> listOfQuestions = new List<Question>();
+    [SerializeField] public float timeForEachQuestion = 15f;
+    [SerializeField] public int baseScore = 100;
+    private List<Question> listOfEasyQuestions = new List<Question>();
+    private List<Question> listOfHardQuestions = new List<Question>();
+    [HideInInspector] public Question currentQuestion;
+    [HideInInspector] public Question.Difficulty currentDifficulty;
+    [HideInInspector] public Question prevQuestion;
 
 
-    public GameState State { get; private set; }
+    [Header("Core Element")]
+    public float score = 0;
+    [SerializeField] Player player;
 
-    // Kick the game off with the first state
-    void Start() => ChangeState(GameState.Answering); // TODO return back Idle
+    private void Start()
+    { 
+        ChangeState(GameState.Idle); // First State
+        foreach (Question question in listOfQuestions)
+        {
+            if (question.difficulty == Question.Difficulty.Easy)
+            {
+                listOfEasyQuestions.Add(question);
+            }
+            else
+            {
+                listOfHardQuestions.Add(question);
+            }
+        }
+    }
 
     public void ChangeState(GameState newState) {
-        OnBeforeStateChanged?.Invoke(newState);
-
-        State = newState;
+        onBeforeStateChange?.Invoke(newState);
+        state = newState;
         switch (newState) {
             case GameState.Idle:
                 HandleIdle();
@@ -47,35 +78,103 @@ public class GameManager : StaticInstance<GameManager> {
                 throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
         }
 
-        OnAfterStateChanged?.Invoke(newState);
+        onAfterStateChange?.Invoke(newState);
+    }
+    
+    public void ResetAction()
+    {
+        onAfterStateChange = null;
+        onBeforeStateChange = null;
     }
 
-    private void HandlePausing()
+    public void HandlePausing()
     {
-        
+        pausePanelUI.SetActive(true);
+
+        player.playerState = PlayerState.Stop;
+
+        onBeforeStateChange = delegate(GameState newState)
+        {
+            pausePanelUI.SetActive(false);
+        };
     }
 
     private void HandleAnswering()
     {
-        //speed = 0;
-        _currentQuestion = listOfQuestion[Random.Range(0, listOfQuestion.Count)];
-        answeringPanelUI.SetActive(true);
-        /*do { _currentQuestion = listOfQuestion[Random.Range(0, listOfQuestion.Count)]; }
-        while (_prevQuestion == _currentQuestion);*/
+        player.playerState = PlayerState.Stop;
+        SelectQuestion();
+        SetQuestionAnswerUI(true);
+
+        onBeforeStateChange = delegate
+        {
+            answeringPanelUI.SetActive(false);
+        };
     }
 
     private void HandleIdle()
     {
+        startPanelUI.SetActive(true);
 
+        onBeforeStateChange = delegate
+        {
+            startPanelUI.SetActive(false);
+        };
     }
 
-    private void HandleStarting() {
-        _prevQuestion = _currentQuestion;
+    private void HandleStarting()
+    {
+        SetQuestionAnswerUI(false);
+        StartCoroutine("ProgressUpdate");
+        player.playerState = PlayerState.Run;
+
+        onBeforeStateChange = delegate
+        {
+            StopCoroutine("ProgressUpdate");
+        };
     }
 
     private void HandleLost()
     {
+        lostPanelUI.SetActive(true);
+    }
 
+    private void SelectQuestion()
+    {
+        do
+        {
+            switch (currentDifficulty)
+            {
+                case (Question.Difficulty.Easy):
+                    currentQuestion = listOfEasyQuestions[Random.Range(0, listOfEasyQuestions.Count)];
+                    break;
+                case (Question.Difficulty.Hard):
+                    currentQuestion = listOfHardQuestions[Random.Range(0, listOfHardQuestions.Count)];
+                    break;
+            }
+        } while (prevQuestion == currentQuestion);
+
+        prevQuestion = currentQuestion; // Record the old question when done answering
+    }
+
+    IEnumerator ProgressUpdate()
+    {
+        // Speed up the game based time passed;
+        while (true)
+        {
+            score += 1;
+            player.speed += 0.2f;
+            yield return new WaitForSecondsRealtime(1);
+        }
+    }
+
+    private void SetQuestionAnswerUI(bool isActive)
+    {
+        answeringPanelUI.SetActive(isActive);
+    }
+
+    public void AddScoreWhenAnswerRight()
+    {
+        score += baseScore * currentQuestion.scoreMultiplier;
     }
 }
 

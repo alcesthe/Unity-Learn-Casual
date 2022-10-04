@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 
 namespace UnityLearnCasual
@@ -16,27 +17,42 @@ namespace UnityLearnCasual
 		[SerializeField] Button submitButton;
 
 		[SerializeField] Toggle togglePrefab;
-		[SerializeField] Toggle radioPrefab;
 
 		private Question refCurrentQuestion;
 		private List<Toggle> listOfToggle = new List<Toggle>();
 
 		private ToggleGroup toggleGroup;
 
-		private void Awake()
+
+        private void Awake()
 		{
 			toggleGroup = GetComponent<ToggleGroup>();
 			submitButton.GetComponent<Button>().onClick.AddListener(delegate
 			{
-				Debug.Log(CheckingAnswer());
+				if(CheckingAnswer() == false)
+                {
+					GameManager.Instance.ChangeState(GameState.Lost);
+				}
+                else
+                {
+					GameManager.Instance.AddScoreWhenAnswerRight();
+					GameManager.Instance.ChangeState(GameState.Starting);
+				}
+				StopCoroutine(CountdownTimer(GameManager.Instance.timeForEachQuestion)); //Stop counting
+				
+
+				// Clear Section
+				foreach (Toggle toggle in listOfToggle){Destroy(toggle.gameObject);}
+				listOfToggle.Clear();
+				answerInputField.GetComponent<InputField>().text = "";
 			});
 		}
 
 		void OnEnable()
 		{
-			refCurrentQuestion = GameManager.Instance._currentQuestion;
+			refCurrentQuestion = GameManager.Instance.currentQuestion;
 			typeText.text = refCurrentQuestion.questionType.ToString();
-			// timeText.text = ...
+			StartCoroutine(CountdownTimer(GameManager.Instance.timeForEachQuestion));
 			questionText.text = refCurrentQuestion.question;
 
 			listOfToggle.Clear(); //Clear the list
@@ -64,12 +80,30 @@ namespace UnityLearnCasual
 					for (int i = 0; i < refCurrentQuestion.listOfGivenAnswers.Count; i++)
 					{
 						var tempToggle = Instantiate(togglePrefab, transform.position, transform.rotation, answersPanel.transform);
+						tempToggle.isOn = false;
 						tempToggle.transform.Find("Label").GetComponent<Text>().text = refCurrentQuestion.listOfGivenAnswers[i];
 						tempToggle.group = toggleGroup;
+						listOfToggle.Add(tempToggle);
 					}
 					break;
 			}
 		}
+
+        private IEnumerator CountdownTimer(float totalTime)
+        {
+            while (true)
+            {
+				totalTime -= 1;
+				timeText.text = "Remain time: " + Mathf.RoundToInt(totalTime);
+				if (totalTime <= 0)
+                {
+					GameManager.Instance.ChangeState(GameState.Lost);
+					break;
+                }
+				yield return new WaitForSeconds(1);
+			}			
+        }
+
 
 		private bool CheckingAnswer()
 		{

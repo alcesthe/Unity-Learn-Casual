@@ -16,3 +16,13 @@ MonoBehaviour:
   difficulty: 0
   scoreMultiplier: 1
   question: In here which is a type
+  listOfGivenAnswers:
+  - float
+  - int
+  - number
+  - Float
+  listOfCorrectAnswersIndex: 01010000
+  correctAnswerIndex: 0
+  correctAnswerString: 
+  showListOfGivenAnswers: 1
+  showListOfCorrectAnswer: 1
