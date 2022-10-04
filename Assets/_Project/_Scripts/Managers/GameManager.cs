@@ -130,6 +130,7 @@ public class GameManager : StaticInstance<GameManager>
         onBeforeStateChange = delegate
         {
             StopCoroutine("ProgressUpdate");
+            player.playerState = PlayerState.Stop;
         };
     }
 
