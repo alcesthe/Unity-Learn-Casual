@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityLearnCasual
 {
-	public class Camera : MonoBehaviour
+	public class MainCamera : MonoBehaviour
 	{
 		[SerializeField] Player player;
 
