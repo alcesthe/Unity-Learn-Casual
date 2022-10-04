@@ -1,4 +1,4 @@
-# Unity-Learn-Casual
+# Unity Learn Casual
 ## Gameplay
 This is a endless runner type game. The rule is that the further you travel, the higher your score. This game contains three sorts of obstacles: Easy Question Door, Hard Question Door, and Spike.
 - Simple & Hard Question Door: If you respond correctly, the game continues and you receive additional points dependent on whether the question was easy or difficult. However, if you respond incorrectly or time out, you will lose.
